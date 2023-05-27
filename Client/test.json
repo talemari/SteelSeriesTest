@@ -1,0 +1,17 @@
+{
+    "Video": {
+        "InputVideoPath": "test_input1.mp4",
+        "Duration": "60.0s",
+        "Resolution": "1920 x 1080",
+        "OutputVideoPath": "test_output1.mp4"
+    },
+    "Text": {
+        "TextString": "I’m sOoOo good at this game! xD",
+        "X": "200",
+        "Y": "100",
+        "FontSize": "64",
+        "FontColor": "0xFFFFFF",
+        "StartTime": "23.0s",
+        "EndTime": "40.0s"
+    }
+}
