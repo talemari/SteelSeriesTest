@@ -83,7 +83,7 @@ func checkForErrors(data *TextRequest) error {
 func generateFfmpegCommandLine(data *TextRequest) (string, error) {
 	err := checkForErrors(data)
 	if err != nil {
-		return "", err
+		return err.Error(), err
 	}
 	return `ffmpeg -i ` + data.Video.InputVideoPath + ` -vf drawtext="enable='between(t,` +
 		strings.Split(data.Text.StartTime, "s")[0] + `,` + strings.Split(data.Text.EndTime, "s")[0] +
@@ -113,9 +113,9 @@ func server() {
 		ffmpegCommand, err := generateFfmpegCommandLine(textRequest)
 		if err != nil {
 			fmt.Printf("Failed to parse request. Error: %s", err)
-			return
+		} else {
+			fmt.Printf("Final command : %s\n", ffmpegCommand)
 		}
-		fmt.Printf("Final command : %s\n", ffmpegCommand)
 		w.WriteHeader(http.StatusCreated)
 		w.Write([]byte(ffmpegCommand))
 	})
