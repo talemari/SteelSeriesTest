@@ -11,6 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var serverStarted = false
+
 func getTestResponse(jsonPath string) (string, error) {
 	jsonFile, err := os.Open(jsonPath)
 	if err != nil {
@@ -27,7 +29,7 @@ func getTestResponse(jsonPath string) (string, error) {
 		return err.Error(), err
 	}
 
-	resp, err := http.Post("http://localhost:8080/", "application/json", b)
+	resp, err := http.Post("http://localhost:"+DefaultPort+"/", "application/json", b)
 	if err != nil {
 		return err.Error(), err
 	}
@@ -39,7 +41,16 @@ func getTestResponse(jsonPath string) (string, error) {
 	return string(responseBody), nil
 }
 
+func startServer() {
+	if serverStarted {
+		return
+	}
+	go Server(DefaultPort)
+	serverStarted = true
+}
+
 func TestResponseToCorrectQuery(t *testing.T) {
+	startServer()
 	response, err := getTestResponse("Test.json")
 	if err != nil {
 		t.Fatalf("Test failed with error: %s", err)
@@ -49,6 +60,7 @@ func TestResponseToCorrectQuery(t *testing.T) {
 }
 
 func TestResponseToInvalidTextEndTime(t *testing.T) {
+	startServer()
 	response, err := getTestResponse("TestInvalidEndTime.json")
 	if err != nil {
 		t.Fatalf("Test failed with error: %s", err)
@@ -58,6 +70,7 @@ func TestResponseToInvalidTextEndTime(t *testing.T) {
 }
 
 func TestResponseToInvalidTextCoordinates(t *testing.T) {
+	startServer()
 	response, err := getTestResponse("TestInvalidCoordinates.json")
 	if err != nil {
 		t.Fatalf("Test failed with error: %s", err)
