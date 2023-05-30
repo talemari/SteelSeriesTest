@@ -1,0 +1,17 @@
+{
+    "Video": {
+        "InputVideoPath": "test_input4.mp4",
+        "Duration": "60.0s",
+        "Resolution": "1920 x 1080",
+        "OutputVideoPath": "test_output4.mp4"
+    },
+    "Text": {
+        "TextString": "RIP",
+        "X": "100",
+        "Y": "9999",
+        "FontSize": "48",
+        "FontColor": "0x777777",
+        "StartTime": "24.0s",
+        "EndTime": "48.0s"
+    }
+}

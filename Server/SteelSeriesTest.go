@@ -30,9 +30,11 @@ type TextRequest struct {
 	Text  TextEffect `json:"Text"`
 }
 
+var DefaultPort = "8080"
+
 func main() {
 	fmt.Println("Server started.")
-	server()
+	Server(DefaultPort)
 }
 
 func checkForErrors(data *TextRequest) error {
@@ -80,47 +82,38 @@ func checkForErrors(data *TextRequest) error {
 	return nil
 }
 
-func generateFfmpegCommandLine(data *TextRequest) (string, error) {
+func generateFfmpegCommandLine(data *TextRequest) string {
 	err := checkForErrors(data)
 	if err != nil {
-		return "", err
+		return err.Error()
 	}
 	return `ffmpeg -i ` + data.Video.InputVideoPath + ` -vf drawtext="enable='between(t,` +
 		strings.Split(data.Text.StartTime, "s")[0] + `,` + strings.Split(data.Text.EndTime, "s")[0] +
 		`)': text='` + data.Text.TextString + `':fontcolor=` + data.Text.FontColor + `:fontsize=` + data.Text.FontSize +
-		`: x=` + data.Text.X + `:y=` + data.Text.Y + `" ` + data.Video.OutputVideoPath + `"`, nil
+		`: x=` + data.Text.X + `:y=` + data.Text.Y + `" ` + data.Video.OutputVideoPath + `"`
 }
 
-func server() {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost {
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-			return
-		}
+func serverResponseHandle(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
 
-		textRequest := &TextRequest{}
-		err := json.NewDecoder(r.Body).Decode(textRequest)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-		readableJson, err := json.MarshalIndent(textRequest, "", "    ")
-		if err != nil {
-			fmt.Println("Failed to make the data human readable.")
-			readableJson = []byte("I am a disgrace to my clan.")
-		}
-		fmt.Println("Received request:", string(readableJson))
-		ffmpegCommand, err := generateFfmpegCommandLine(textRequest)
-		if err != nil {
-			fmt.Printf("Failed to parse request. Error: %s", err)
-			return
-		}
-		fmt.Printf("Final command : %s\n", ffmpegCommand)
-		w.WriteHeader(http.StatusCreated)
-		w.Write([]byte(ffmpegCommand))
-	})
+	textRequest := &TextRequest{}
+	err := json.NewDecoder(r.Body).Decode(textRequest)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	ffmpegCommand := generateFfmpegCommandLine(textRequest)
+	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte(ffmpegCommand))
+}
 
-	if err := http.ListenAndServe(":8080", nil); err != http.ErrServerClosed {
+func Server(addr string) {
+	server := &http.Server{Addr: ":" + DefaultPort}
+	http.HandleFunc("/", serverResponseHandle)
+	if err := server.ListenAndServe(); err != http.ErrServerClosed {
 		panic(err)
 	}
 }
